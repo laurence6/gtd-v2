@@ -65,7 +65,6 @@ const TaskManager = {
 const vue_opts_gtd = {
     el: "#gtd",
     data: {
-        display_task_editor: false,
         task_editor: {
             id: null,
             title: null,
@@ -73,7 +72,17 @@ const vue_opts_gtd = {
             u: null,
             tags: null,
         },
+        display_task_editor: false,
+        task_editor_changed: false,
         tasks: TaskManager.data,
+    },
+    watch: {
+        task_editor: {
+            handler: function() {
+                this.task_editor_changed = true;
+            },
+            deep: true,
+        },
     },
     methods: {
         get_tasks_by_group: function(i, u) {
@@ -83,6 +92,7 @@ const vue_opts_gtd = {
             Task.copy(this.task_editor, t);
             this.display_task_editor = true;
             this.$nextTick(function() {
+                this.task_editor_changed = false;
                 this.$refs.task_editor_input_title.focus();
             });
         },
@@ -110,7 +120,7 @@ const vue_opts_gtd = {
             TaskManager.delete_task(this.task_editor);
         },
         discard: function() {
-            if (confirm("Confirm Discard Changes\nYour changes will be lost.")) {
+            if (!this.task_editor_changed || confirm("Confirm Discard Changes\nYour changes will be lost.")) {
                 this.display_task_editor = false;
             }
         },
