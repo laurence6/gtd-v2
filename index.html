@@ -41,7 +41,7 @@
                 </div>
                 <div class="modal-content">
                     <form class="grid">
-                        <div class="grid-100"><label><span>Title</span><input type="text" v-model="task_editor.title"></label></div>
+                        <div class="grid-100"><label><span>Title</span><input type="text" ref="task_editor_input_title" v-model="task_editor.title"></label></div>
                         <div class="grid-50"><label><span>I</span><input type="number" v-model.number="task_editor.i"></label></div>
                         <div class="grid-50"><label><span>U</span><input type="number" v-model.number="task_editor.u"></label></div>
                         <div class="grid-100"><label><span>Tags</span><input type="text" v-model="task_editor.tags"></label></div>

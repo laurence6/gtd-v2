@@ -80,6 +80,9 @@ let gtd = new Vue({
         show_task_editor: function(t) {
             this.task_editor = t;
             this.display_task_editor = true;
+            this.$nextTick(function() {
+                this.$refs.task_editor_input_title.focus();
+            });
         },
         hide_task_editor: function() {
             this.display_task_editor = false;
