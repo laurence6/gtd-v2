@@ -33,11 +33,11 @@
                 </tr>
             </tbody>
         </table>
-        <div class="modal" v-if="display_task_editor" v-on:click="hide_task_editor">
+        <div class="modal" v-if="display_task_editor" v-on:click="discard">
             <div class="modal-body" v-on:click.stop="">
                 <div class="modal-header">
                     <span class="modal-title">{{ task_editor.title || "New Task" }}</span>
-                    <span class="modal-close" v-on:click.stop="hide_task_editor">×</span>
+                    <span class="modal-close" v-on:click.stop="discard">×</span>
                 </div>
                 <div class="modal-content">
                     <form class="grid">
