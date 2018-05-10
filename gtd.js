@@ -36,41 +36,31 @@ const Task = {
     },
 }
 
-class TaskManager {
-    constructor() {
-        this._tasks = {};
-    }
+const TaskManager = {
+    data: {},
 
-    init() {
-        return localforage.iterate((v, k, n) => {
-            this._tasks[k] = v;
-        });
-    }
+    init: function() {
+        return localforage.iterate((v, k, n) => this.data[k] = v);
+    },
 
-    data() {
-        return this._tasks;
-    }
-
-    add_task(task) {
-        this._tasks[task.id] = task;
+    add_task: function(task) {
+        this.data[task.id] = task;
         localforage.setItem(task.id, task);
-    }
+    },
 
-    delete_task(task) {
-        delete this._tasks[task.id];
+    delete_task: function(task) {
+        delete this.data[task.id];
         localforage.removeItem(task.id);
-    }
+    },
 
-    update_task(task) {
+    update_task: function(task) {
         localforage.setItem(task.id, task);
-    }
+    },
 
-    get_task_by_id(id) {
-        return this._tasks[id];
-    }
-}
-
-const tm = new TaskManager();
+    get_task_by_id: function(id) {
+        return this.data[id];
+    },
+};
 
 const vue_opts_gtd = {
     el: "#gtd",
@@ -83,7 +73,7 @@ const vue_opts_gtd = {
             u: null,
             tags: null,
         },
-        tasks: tm.data(),
+        tasks: TaskManager.data,
     },
     methods: {
         get_tasks_by_group: function(i, u) {
@@ -107,17 +97,17 @@ const vue_opts_gtd = {
             if (!this.task_editor.id) {
                 let task = Task.New(this.task_editor);
                 Task.gen_id(task);
-                tm.add_task(task);
+                TaskManager.add_task(task);
             } else {
-                let task = tm.get_task_by_id(this.task_editor.id);
+                let task = TaskManager.get_task_by_id(this.task_editor.id);
                 Task.copy(task, this.task_editor);
-                tm.update_task(task);
+                TaskManager.update_task(task);
             }
         },
         delete_task: function() {
             this.display_task_editor = false;
 
-            tm.delete_task(this.task_editor);
+            TaskManager.delete_task(this.task_editor);
         },
         discard: function() {
             if (confirm("Confirm Discard Changes\nYour changes will be lost.")) {
@@ -127,7 +117,7 @@ const vue_opts_gtd = {
     },
 };
 
-const gtd = tm
+const gtd = TaskManager
     .init()
     .then(() => new Vue(vue_opts_gtd))
     .catch(e => console.error(e));
