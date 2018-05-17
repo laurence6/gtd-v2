@@ -1,5 +1,13 @@
 "use strict";
 
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("/sw.js")
+            .catch(err => { console.error("ServiceWorker registration failed: ", err); });
+    });
+}
+
 const gen_task_id = function() {
     let now;
     let task_id_count;
@@ -34,13 +42,13 @@ const Task = {
     gen_id: (task) => {
         task.id = gen_task_id();
     },
-}
+};
 
 const TaskManager = {
     data: {},
 
-    init: function() {
-        return localforage.iterate((v, k, n) => this.data[k] = v);
+    read_data: function() {
+        return localforage.iterate((v, k, n) => { this.data[k] = v; });
     },
 
     add_task: function(task) {
@@ -128,6 +136,6 @@ const vue_opts_gtd = {
 };
 
 const gtd = TaskManager
-    .init()
+    .read_data()
     .then(() => new Vue(vue_opts_gtd))
-    .catch(e => console.error(e));
+    .catch(e => { console.error(e); });
