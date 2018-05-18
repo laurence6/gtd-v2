@@ -6,7 +6,7 @@ const URLS_TO_CACHE = [
     "/",
     "/gtd.css",
     "/gtd.js",
-    "/localforage.min.js",
+    "/idb.js",
     "/vue.js",
 ];
 

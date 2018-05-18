@@ -8,21 +8,6 @@ if ("serviceWorker" in navigator) {
     });
 }
 
-const gen_task_id = function() {
-    let now;
-    let task_id_count;
-    return () => {
-        let _now = Date.now().toString();
-        if (_now !== now) {
-            now = _now;
-            task_id_count = 1000;
-        } else {
-            task_id_count += 1;
-        }
-        return now + task_id_count.toString();
-    };
-}();
-
 const Task = {
     New: (params = null) => {
         params = params || {};
@@ -38,40 +23,68 @@ const Task = {
         dst.u = src.u;
         dst.tags = src.tags;
     },
-
-    gen_id: (task) => {
-        task.id = gen_task_id();
-    },
 };
+
+const DB_STORES = Object.freeze({
+    TASK: "task",
+});
+const DB_STORES_OPTIONS = Object.freeze({
+    TASK: { autoIncrement: true, keyPath: "id" },
+});
+const DB = idb.open("gtd", 1, upgrade_db => {
+    for (const store in DB_STORES) {
+        if (!upgrade_db.objectStoreNames.contains(DB_STORES[store])) {
+            upgrade_db.createObjectStore(DB_STORES[store], DB_STORES_OPTIONS[store]);
+        }
+    }
+});
 
 const TaskManager = {
     data: {},
 
     read_data: function() {
-        return localforage.iterate((v, k, n) => { this.data[k] = v; });
+        return DB.then(db => {
+            return db
+                .transaction(DB_STORES.TASK, "readonly")
+                .objectStore(DB_STORES.TASK)
+                .getAll()
+                .then(rows => { rows.forEach(r => {
+                    Vue.set(this.data, r.id, r);
+                });});
+            ;
+        });
     },
 
-    add_task: function(task) {
-        this.data[task.id] = task;
-        localforage.setItem(task.id, task);
+    put_task: function(task) {
+        if (!task.id) {
+            delete task.id;
+        }
+        return DB.then(db => {
+            return db
+                .transaction(DB_STORES.TASK, "readwrite")
+                .objectStore(DB_STORES.TASK)
+                .put(task);
+        }).then(id => {
+            task.id = id;
+            Vue.set(this.data, task.id, task);
+        });
     },
 
     delete_task: function(task) {
-        delete this.data[task.id];
-        localforage.removeItem(task.id);
-    },
-
-    update_task: function(task) {
-        localforage.setItem(task.id, task);
-    },
-
-    get_task_by_id: function(id) {
-        return this.data[id];
+        return DB.then(db => {
+            return db
+                .transaction(DB_STORES.TASK, "readwrite")
+                .objectStore(DB_STORES.TASK)
+                .delete(task.id);
+        }).then(() => {
+            Vue.delete(this.data, task.id);
+        });
     },
 };
 
 const vue_opts_gtd = {
     el: "#gtd",
+
     data: {
         task_editor: {
             id: null,
@@ -82,8 +95,9 @@ const vue_opts_gtd = {
         },
         display_task_editor: false,
         task_editor_changed: false,
-        tasks: TaskManager.data,
+        tasks: TaskManager.data, // read only
     },
+
     watch: {
         task_editor: {
             handler: function() {
@@ -92,10 +106,12 @@ const vue_opts_gtd = {
             deep: true,
         },
     },
+
     methods: {
         get_tasks_by_group: function(i, u) {
             return Object.values(this.tasks).filter(t => t.i === i && t.u === u);
         },
+
         show_task_editor: function(t) {
             Task.copy(this.task_editor, t);
             this.display_task_editor = true;
@@ -104,29 +120,26 @@ const vue_opts_gtd = {
                 this.$refs.task_editor_input_title.focus();
             });
         },
+
         submit_task: function() {
             if (!this.task_editor.title) {
                 alert("Task title can't be blank");
                 return;
             }
 
-            this.display_task_editor = false;
-
-            if (!this.task_editor.id) {
-                let task = Task.New(this.task_editor);
-                Task.gen_id(task);
-                TaskManager.add_task(task);
-            } else {
-                let task = TaskManager.get_task_by_id(this.task_editor.id);
-                Task.copy(task, this.task_editor);
-                TaskManager.update_task(task);
-            }
+            let task = Task.New(this.task_editor);
+            TaskManager.put_task(task)
+                .then(() => { this.display_task_editor = false; })
+                .catch(err => { console.error(err); });
         },
+
         delete_task: function() {
             this.display_task_editor = false;
 
-            TaskManager.delete_task(this.task_editor);
+            TaskManager.delete_task(this.task_editor)
+                .catch(err => { console.error(err); });
         },
+
         discard: function() {
             if (!this.task_editor_changed || confirm("Confirm Discard Changes\nYour changes will be lost.")) {
                 this.display_task_editor = false;
@@ -138,4 +151,4 @@ const vue_opts_gtd = {
 const gtd = TaskManager
     .read_data()
     .then(() => new Vue(vue_opts_gtd))
-    .catch(e => { console.error(e); });
+    .catch(err => { console.error(err); });
