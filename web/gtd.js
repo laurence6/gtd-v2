@@ -1,5 +1,7 @@
 "use strict";
 
+(() => {
+
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker
@@ -152,3 +154,5 @@ const gtd = TaskManager
     .read_data()
     .then(() => new Vue(vue_opts_gtd))
     .catch(err => { console.error(err); });
+
+})();
