@@ -1,0 +1,21 @@
+{
+    "name": "gtd",
+    "version": "0.1.0",
+    "scripts": {
+        "build": "gulp default"
+    },
+    "license": "GPL-3.0",
+    "devDependencies": {
+        "autoprefixer": "*",
+        "babel-core": "*",
+        "babel-preset-env": "*",
+        "babel-preset-minify": "*",
+        "cssnano": "*",
+        "gulp": "*",
+        "gulp-babel": "*",
+        "gulp-htmlmin": "*",
+        "gulp-postcss": "*",
+        "gulp-rename": "*"
+    },
+    "private": true
+}
