@@ -3,11 +3,11 @@
 
 const CACHE_NAME = "gtd-cache";
 const URLS_TO_CACHE = [
-    "/",
-    "/gtd.css",
-    "/gtd.js",
-    "/idb.js",
-    "/vue.js",
+    "./",
+    "./gtd.css",
+    "./gtd.js",
+    "./idb.js",
+    "./vue.js",
 ];
 
 self.addEventListener("install", event => {
